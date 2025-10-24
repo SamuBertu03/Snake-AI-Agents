@@ -1,4 +1,5 @@
 import pygame, sys, random
+from collections import deque
 
 CELL_SIZE = 20
 GRID_W = 20
@@ -15,14 +16,14 @@ SNAKE_BODY = (0, 180, 0)
 FOOD_COLOR = (200, 0, 0)
 TEXT_COLOR = (255, 255, 255)
 
-# azioni possibili
+# azioni
 ACTIONS = {
-    "UP": (0,-1),
-    "DOWN": (0,1),
-    "LEFT": (-1,0),
-    "RIGHT": (1,0)
+    "UP": (0, -1),
+    "DOWN": (0, 1),
+    "LEFT": (-1, 0),
+    "RIGHT": (1, 0)
 }
-OPPOSITE = { (1,0):(-1,0), (-1,0):(1,0), (0,1):(0,-1), (0,-1):(0,1) }
+OPPOSITE = {(1, 0): (-1, 0), (-1, 0): (1, 0), (0, 1): (0, -1), (0, -1): (0, 1)}
 
 # ------------------ GAME LOGIC ------------------
 class SnakeGame:
@@ -32,31 +33,29 @@ class SnakeGame:
         self.reset()
 
     def reset(self):
-        self.snake = [(5,5),(6,5),(7,5)]
-        self.direction = (1,0)  # right
+        self.snake = [(5, 5), (6, 5), (7, 5)]
+        self.direction = (1, 0)
         self.food = self._spawn_food()
         self.game_over = False
         return self.get_state()
 
     def _spawn_food(self):
-        all_cells = {(x,y) for x in range(self.width) for y in range(self.height)}
+        all_cells = {(x, y) for x in range(self.width) for y in range(self.height)}
         free = list(all_cells - set(self.snake))
-        if not free: return None
-        return random.choice(free)
+        return random.choice(free) if free else None
 
     def step(self, action):
         if self.game_over:
             return self.get_state(), 0, True
 
         if action and action != OPPOSITE[self.direction]:
-            self.direction = action                         # si evita l'inversione di direzione 
+            self.direction = action
 
-        # si calcola la nuova posizione della testa
         head = self.snake[-1]
-        dx,dy = self.direction
-        new_head = (head[0]+dx, head[1]+dy)
-
+        dx, dy = self.direction
+        new_head = (head[0] + dx, head[1] + dy)
         tail = self.snake[0]
+
         # collisioni
         if not (0 <= new_head[0] < self.width and 0 <= new_head[1] < self.height):
             self.game_over = True
@@ -66,7 +65,6 @@ class SnakeGame:
         if self.game_over:
             return self.get_state(), -1, True
 
-        
         self.snake.append(new_head)
         reward = 0
         if new_head == self.food:
@@ -83,11 +81,9 @@ class SnakeGame:
             "direction": self.direction,
             "food": self.food,
             "game_over": self.game_over,
-            "score": len(self.snake)-3
+            "score": len(self.snake) - 3
         }
 
-    def is_game_over(self):
-        return self.game_over
 
 # ------------------ RENDERER ------------------
 class SnakeRenderer:
@@ -100,40 +96,33 @@ class SnakeRenderer:
 
     def draw(self, game: SnakeGame):
         self.screen.fill(BG)
-        # griglia
         for x in range(0, WINDOW_W, CELL_SIZE):
-            pygame.draw.line(self.screen, GRID_COLOR, (x,0), (x,WINDOW_H))
+            pygame.draw.line(self.screen, GRID_COLOR, (x, 0), (x, WINDOW_H))
         for y in range(0, WINDOW_H, CELL_SIZE):
-            pygame.draw.line(self.screen, GRID_COLOR, (0,y), (WINDOW_W,y))
-        # snake
-        for i,(x,y) in enumerate(game.snake):
-            color = SNAKE_HEAD if i==len(game.snake)-1 else SNAKE_BODY
-            pygame.draw.rect(self.screen, color, (x*CELL_SIZE,y*CELL_SIZE,CELL_SIZE,CELL_SIZE))
-            pygame.draw.rect(self.screen, BG, (x*CELL_SIZE,y*CELL_SIZE,CELL_SIZE,CELL_SIZE), 1)
-        # food
+            pygame.draw.line(self.screen, GRID_COLOR, (0, y), (WINDOW_W, y))
+        for i, (x, y) in enumerate(game.snake):
+            color = SNAKE_HEAD if i == len(game.snake) - 1 else SNAKE_BODY
+            pygame.draw.rect(self.screen, color, (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
         if game.food:
-            pygame.draw.rect(self.screen, FOOD_COLOR, (game.food[0]*CELL_SIZE,game.food[1]*CELL_SIZE,CELL_SIZE,CELL_SIZE))
-        # score
+            pygame.draw.rect(self.screen, FOOD_COLOR, (game.food[0] * CELL_SIZE, game.food[1] * CELL_SIZE, CELL_SIZE, CELL_SIZE))
         txt = self.font_small.render(f"Score: {game.get_state()['score']}", True, TEXT_COLOR)
-        self.screen.blit(txt,(5,5))
-
+        self.screen.blit(txt, (5, 5))
         pygame.display.flip()
         self.clock.tick(FPS)
 
     def game_over_menu(self, score):
         self.screen.fill(BG)
         msg = self.font_big.render("Game Over!", True, TEXT_COLOR)
-        msg_rect = msg.get_rect(center=(WINDOW_W//2, WINDOW_H//3))
+        msg_rect = msg.get_rect(center=(WINDOW_W // 2, WINDOW_H // 3))
         self.screen.blit(msg, msg_rect)
 
         score_text = self.font_small.render(f"Score: {score}", True, TEXT_COLOR)
-        score_rect = score_text.get_rect(center=(WINDOW_W//2, WINDOW_H//2))
+        score_rect = score_text.get_rect(center=(WINDOW_W // 2, WINDOW_H // 2))
         self.screen.blit(score_text, score_rect)
 
         opt_text = self.font_small.render("Press R to Restart or Q to Quit", True, TEXT_COLOR)
-        opt_rect = opt_text.get_rect(center=(WINDOW_W//2, WINDOW_H//2 + 40))
+        opt_rect = opt_text.get_rect(center=(WINDOW_W // 2, WINDOW_H // 2 + 40))
         self.screen.blit(opt_text, opt_rect)
-
         pygame.display.flip()
 
         waiting = True
@@ -147,7 +136,71 @@ class SnakeRenderer:
                     elif event.key == pygame.K_q:
                         pygame.quit(); sys.exit()
 
-# ------------------ AGENT BASE ------------------
+
+# ------------------ SEARCH UTILITIES ------------------
+class Node:
+    def __init__(self, state, parent=None, action=None):
+        self.state = state
+        self.parent = parent
+        self.action = action
+
+
+def simulate_step(state, action, width, height):
+    snake = state["snake"].copy()
+    direction = action
+    head = snake[-1]
+    dx, dy = direction
+    new_head = (head[0] + dx, head[1] + dy)
+    tail = snake[0]
+
+    # collisioni
+    if not (0 <= new_head[0] < width and 0 <= new_head[1] < height):
+        return None
+    if new_head in snake and new_head != tail:
+        return None
+
+    snake.append(new_head)
+    food = state["food"]
+    if new_head == food:
+        # non eliminiamo il cibo nella simulazione (serve come goal)
+        new_food = food
+    else:
+        snake.pop(0)
+        new_food = food
+
+    return {
+        "snake": snake,
+        "direction": direction,
+        "food": new_food,
+        "game_over": False,
+        "score": len(snake) - 3
+    }
+
+
+
+def expand(node, width, height):
+    children = []
+    for action in ACTIONS.values():
+        if node.state["direction"] == OPPOSITE[action]:
+            continue
+        new_state = simulate_step(node.state, action, width, height)
+        if new_state:
+            children.append(Node(new_state, parent=node, action=action))
+    return children
+
+
+def extract_plan(node):
+    actions = []
+    while node.parent is not None:
+        actions.append(node.action)
+        node = node.parent
+    actions.reverse()
+    return actions
+
+
+
+
+# ------------------ AGENTS ------------------
 class HumanAgent:
     def act(self, state):
         keys = pygame.key.get_pressed()
@@ -160,16 +213,15 @@ class HumanAgent:
 class RandomAgent:
     def act(self, state):
         return random.choice(list(ACTIONS.values()))
-    
 
 
 # ------------------ MAIN LOOP ------------------
 def main():
     game = SnakeGame()
     renderer = SnakeRenderer()
-    agent = HumanAgent()   # sostituibile con RandomAgent()
+    agent = HumanAgent()
 
-    while True:  
+    while True:
         state = game.reset()
         done = False
         while not done:
@@ -181,10 +233,10 @@ def main():
             state, reward, done = game.step(action)
             renderer.draw(game)
 
-        
         choice = renderer.game_over_menu(state["score"])
         if choice == "restart":
             continue
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()
