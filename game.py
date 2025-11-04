@@ -1,69 +1,80 @@
-# Modular Snake Game - Multiple Files Structure
-
-# game.py
 import random
-from collections import deque
-
-CELL_SIZE = 20
-GRID_W = 20
-GRID_H = 20
-
-ACTIONS = {
-    "UP": (0, -1),
-    "DOWN": (0, 1),
-    "LEFT": (-1, 0),
-    "RIGHT": (1, 0)
-}
-OPPOSITE = {(1, 0): (-1, 0), (-1, 0): (1, 0), (0, 1): (0, -1), (0, -1): (0, 1)}
 
 class SnakeGame:
-    def __init__(self, width=GRID_W, height=GRID_H):
-        self.width = width
-        self.height = height
-        self.reset()
+    def __init__(self, grid_size=10, seed=42):
+        self.grid_size = grid_size
+        self.reset(seed)
 
-    def reset(self):
-        self.snake = [(5, 5), (6, 5), (7, 5)]
-        self.direction = ACTIONS["RIGHT"]
+    # inizializzazione dell'envinroment
+    def reset(self, seed=42):
+        random.seed(seed)
+        self.snake = [(self.grid_size // 2, self.grid_size // 2)]
+        self.direction = (0, 1)  # in che verso inizia a guardare, default: verso destra
         self.food = self._spawn_food()
+        self.score = 0
         self.game_over = False
-        return self.get_state()
+        self.moves = 0
+        self.seed = seed
 
+    # funzione per far spawnare il cibo 
     def _spawn_food(self):
-        all_cells = {(x, y) for x in range(self.width) for y in range(self.height)}
-        free = list(all_cells - set(self.snake))
-        return random.choice(free)
+        empty_cells = [(x, y) for x in range(self.grid_size)
+                       for y in range(self.grid_size)
+                       if (x, y) not in self.snake]
+        if not empty_cells:
+            return None
+        return random.choice(empty_cells)
 
+    # funzione per effettuare un passo nel gioco
     def step(self, action):
+        """action: (dx, dy)"""
         if self.game_over:
-            return self.get_state(), 0, True
-        if action and action != OPPOSITE[self.direction]:
-            self.direction = action
-        head = self.snake[-1]
-        dx, dy = self.direction
-        new_head = (head[0] + dx, head[1] + dy)
-        tail = self.snake[0]
-        if not (0 <= new_head[0] < self.width and 0 <= new_head[1] < self.height) or \
-           (new_head in self.snake and new_head != tail):
+            return
+
+        head_x, head_y = self.snake[0]
+        dx, dy = action
+
+        # aggiorno la testa del serpente a seconda della direzione da intraprendere
+        new_head = (head_x + dx, head_y + dy)
+
+        # controlla collisioni (con la griglia e contro se stesso)
+        if (new_head in self.snake) or not (0 <= new_head[0] < self.grid_size) or not (0 <= new_head[1] < self.grid_size):
             self.game_over = True
-            return self.get_state(), -1, True
-        self.snake.append(new_head)
-        reward = 1 if new_head == self.food else 0
-        if reward:
+            return
+
+        # muove il serpente
+        self.snake.insert(0, new_head)
+
+        # controlla se ha mangiato
+        if new_head == self.food:
+            self.score += 1
             self.food = self._spawn_food()
         else:
-            self.snake.pop(0)
-        return self.get_state(), reward, False
+            # rimuovo la coda del serpente, dunque il penultimo elemento del corpo diventa la nuova coda
+            # le posizioni intermedie del corpo non vengono modificate, si aggiunge un nuovo elemento in testa e si rimuove in coda (FIFO)
+            self.snake.pop()
+        
+        # numero di azioni intraprese dal serpente  
+        self.moves += 1
 
+    # restituisce lo stato corrente 
     def get_state(self):
         return {
-            "snake": self.snake.copy(),
+            "snake": list(self.snake),
             "direction": self.direction,
             "food": self.food,
             "game_over": self.game_over,
-            "score": len(self.snake) - 3
+            "score": self.score,
+            "grid_size": self.grid_size,
         }
 
-
-
-
+    def clone(self):
+        """Ritorna una copia dello stato attuale (per la ricerca)."""
+        clone = SnakeGame(self.grid_size)
+        clone.snake = list(self.snake)
+        clone.direction = self.direction
+        clone.food = self.food
+        clone.score = self.score
+        clone.game_over = self.game_over
+        clone.moves = self.moves
+        return clone
