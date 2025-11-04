@@ -1,12 +1,14 @@
-# agents.py
 import pygame
-from game import ACTIONS
 
 class HumanAgent:
-    def act(self, state):
+    def get_action(self):
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_UP]: return ACTIONS["UP"]
-        if keys[pygame.K_DOWN]: return ACTIONS["DOWN"]
-        if keys[pygame.K_LEFT]: return ACTIONS["LEFT"]
-        if keys[pygame.K_RIGHT]: return ACTIONS["RIGHT"]
+        if keys[pygame.K_UP]:
+            return (-1, 0)
+        elif keys[pygame.K_DOWN]:
+            return (1, 0)
+        elif keys[pygame.K_LEFT]:
+            return (0, -1)
+        elif keys[pygame.K_RIGHT]:
+            return (0, 1)
         return None
