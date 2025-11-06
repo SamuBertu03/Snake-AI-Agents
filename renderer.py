@@ -3,11 +3,10 @@ import time
 
 CELL_SIZE = 30
 MARGIN = 2               # spazio vuoto tra un quadrato e l’altro, per creare una griglia visivamente più pulita
-FPS = 1                  # esecuzione lenta per vedere bene
 THINK_DOT_RADIUS = 3     # raggio dei pallini rossi 
 
 class Renderer:
-    def __init__(self, grid_size, think_delay_s=0.08):
+    def __init__(self, grid_size, agent_name, fps, think_delay_s=0.08):
         pygame.init()
         self.grid_size = grid_size
         size = grid_size * (CELL_SIZE + MARGIN)
@@ -15,6 +14,8 @@ class Renderer:
         pygame.display.set_caption("Snake AI")
         self.clock = pygame.time.Clock()
         self.font = pygame.font.SysFont("Arial", 22)
+        self.agent_name = agent_name
+        self.fps=fps
         self.think_delay_s = think_delay_s
 
     def _cell_rect(self, x, y):
@@ -69,6 +70,11 @@ class Renderer:
                 pygame.draw.line(self.screen, (255, 0, 0), start_pos, end_pos, 3)
                 pygame.draw.circle(self.screen, (255, 120, 120), end_pos, 4)
 
+        # overlay info riga superiore (agente usato)
+        header = f"Search Algorithm: {self.agent_name}"
+        text = self.font.render(header, True, (255, 255, 255))
+        self.screen.blit(text, (10, 10))
+        
         # overlay info riga inferiore
         footer = f"Score: {game.score}"
         if overlay_info:
@@ -89,4 +95,4 @@ class Renderer:
     # frame per second, regolano la velocità del serpente una volta calcolato la soluzione
     def tick_execution(self):
         """Frame rate lento durante l'esecuzione del piano."""
-        self.clock.tick(FPS)
+        self.clock.tick(self.fps)

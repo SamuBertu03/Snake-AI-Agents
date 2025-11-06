@@ -1,7 +1,7 @@
 from collections import deque
 import heapq
 from math import sqrt
-
+from heuristics import manhattan
 # mosse
 MOVES = {
     "UP": (-1, 0),
@@ -10,13 +10,7 @@ MOVES = {
     "RIGHT": (0, 1),
 }
 
-# distanza manhattan
-def manhattan(a, b):
-    return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
-# distanza in linea d'aria
-def euclidean_distance(a, b):
-    return sqrt((a[0]-b[0])**2 + (a[1]-b[1])**2)
 
 # def della classe dell'oggetto che ha come attributi il risultato della ricerca
 class SearchResult:
