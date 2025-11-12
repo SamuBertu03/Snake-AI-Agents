@@ -15,7 +15,7 @@ AGENTS = {
     "astar": AStarAgent,
 }
 
-def run_game(agent_name="bfs", n=5, grid_size=10, seed=42, render=True,fps=1, think_speed=0.08):
+def run_game(agent_name="bfs", is_relaxed=True, n=5, grid_size=10, seed=42, render=True,fps=1, think_speed=0.08):
     """
     agent_name: nome dell'agente (bfs, dfs, greedy, astar, human)
     n: quante mele mangiare prima di terminare
@@ -25,7 +25,7 @@ def run_game(agent_name="bfs", n=5, grid_size=10, seed=42, render=True,fps=1, th
     think_speed: tempo (in secondi) tra ogni espansione dell'algoritmo
     """
     game = SnakeGame(grid_size, seed)
-    agent = AGENTS[agent_name]()
+    agent = AGENTS[agent_name](is_relaxed=is_relaxed)
     renderer = Renderer(grid_size, agent_name=agent_name,fps=fps,think_delay_s=think_speed) if render else None
     human = HumanAgent() if agent_name == "human" else None
 
@@ -92,6 +92,7 @@ def run_game(agent_name="bfs", n=5, grid_size=10, seed=42, render=True,fps=1, th
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--agent", type=str, default="bfs", choices=AGENTS.keys())
+    parser.add_argument("--relaxed",type=bool, default=True)
     parser.add_argument("--n", type=int, default=5)
     parser.add_argument("--grid", type=int, default=10)
     parser.add_argument("--seed", type=int, default=42)
@@ -103,6 +104,7 @@ if __name__ == "__main__":
 
     run_game(
         agent_name=args.agent,
+        is_relaxed=args.relaxed,
         n=args.n,
         grid_size=args.grid,
         seed=args.seed,

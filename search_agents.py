@@ -23,15 +23,26 @@ class SearchResult:
 
 # Agente base: restituisce le celle adiacenti alla posizione attuale 
 class _BaseAgent:
+    def __init__(self,is_relaxed=True):
+        self.is_relaxed=is_relaxed
+    
     def _neighbors(self, game, pos):
-        for dx, dy in MOVES.values():
-            nx, ny = pos[0] + dx, pos[1] + dy
-            if 0 <= nx < game.grid_size and 0 <= ny < game.grid_size:
-                if (nx, ny) not in game.snake:
-                    yield (nx, ny)
-
+        # Caso rilassato in cui lo stato corrente contiene solo la testa del serpente
+        if(self.is_relaxed):
+            for dx, dy in MOVES.values():
+                nx, ny = pos[0] + dx, pos[1] + dy
+                if 0 <= nx < game.grid_size and 0 <= ny < game.grid_size:
+                    if (nx, ny) not in game.snake:
+                        yield (nx, ny)
+        else:
+            #applicazione caso completo
+            pass
 # Agente per BFS 
 class BFSAgent(_BaseAgent):
+    
+    def __init__(self, is_relaxed=True):
+        super().__init__(is_relaxed)
+        
     def find_path_with_exploration(self, game, on_expand=None):
         start, goal = game.snake[0], game.food
         if goal is None:
@@ -64,6 +75,10 @@ class BFSAgent(_BaseAgent):
 
 # Agente per DFS 
 class DFSAgent(_BaseAgent):
+    
+    def __init__(self, is_relaxed=True):
+        super().__init__(is_relaxed)
+        
     def find_path_with_exploration(self, game, on_expand=None):
         start, goal = game.snake[0], game.food
         if goal is None:
@@ -95,6 +110,10 @@ class DFSAgent(_BaseAgent):
 
 # Agente per Greedy 
 class GreedyAgent(_BaseAgent):
+    
+    def __init__(self, is_relaxed=True):
+        super().__init__(is_relaxed)
+        
     def find_path_with_exploration(self, game, on_expand=None):
         start, goal = game.snake[0], game.food
         if goal is None:
@@ -130,6 +149,10 @@ class GreedyAgent(_BaseAgent):
 
 # Agente per A star 
 class AStarAgent(_BaseAgent):
+    
+    def __init__(self, is_relaxed=True):
+        super().__init__(is_relaxed)
+        
     def find_path_with_exploration(self, game, on_expand=None):
         start, goal = game.snake[0], game.food
         if goal is None:
