@@ -1,4 +1,4 @@
-# Snake AI
+# SnAIke
 
 A didactic project that implements and visualizes various search algorithms applied to the classic Snake game. The project compares uninformed (BFS, DFS) and informed (Greedy, A*) search algorithms in two versions: relaxed and complete.
 
