@@ -19,7 +19,7 @@ AGENTS = {
     "relaxed_greedy": Relaxed_GreedyAgent,
 }
 
-def run_game(agent_name="bfs", n=50, grid_size=10, seed=42, render=True, fps=1, think_speed=0.001):
+def run_game(agent_name="bfs", n=101, grid_size=10, seed=42, render=True, fps=1, think_speed=0.001):
     game = SnakeGame(grid_size, seed)
     agent = AGENTS[agent_name]()
     renderer = Renderer(grid_size, agent_name=agent_name, fps=fps, think_delay_s=think_speed) if render else None
