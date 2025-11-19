@@ -3,36 +3,30 @@ from game import SnakeGame
 from renderer import Renderer
 from human_agent import HumanAgent
 from search_agents import BFSAgent, DFSAgent, GreedyAgent, AStarAgent
+from search_agents_relaxed import Relaxed_BFSAgent, Relaxed_DFSAgent, Relaxed_AStarAgent, Relaxed_GreedyAgent
 import pygame
 import time
 
-# ricerche su grafo 
 AGENTS = {
     "human": HumanAgent,
     "bfs": BFSAgent,
     "dfs": DFSAgent,
     "greedy": GreedyAgent,
     "astar": AStarAgent,
+    "relaxed_bfs": Relaxed_BFSAgent,
+    "relaxed_dfs": Relaxed_DFSAgent,
+    "relaxed_astar": Relaxed_AStarAgent,
+    "relaxed_greedy": Relaxed_GreedyAgent,
 }
 
-def run_game(agent_name="bfs", is_relaxed=True, n=5, grid_size=10, seed=42, render=True,fps=1, think_speed=0.08):
-    """
-    agent_name: nome dell'agente (bfs, dfs, greedy, astar, human)
-    n: quante mele mangiare prima di terminare
-    grid_size: dimensione della griglia NxN
-    seed: seed pseudocasuale per la mela
-    render: True = mostra grafica, False = solo log
-    think_speed: tempo (in secondi) tra ogni espansione dell'algoritmo
-    """
+def run_game(agent_name="bfs", n=50, grid_size=10, seed=42, render=True, fps=1, think_speed=0.001):
     game = SnakeGame(grid_size, seed)
-    agent = AGENTS[agent_name](is_relaxed=is_relaxed)
-    renderer = Renderer(grid_size, agent_name=agent_name,fps=fps,think_delay_s=think_speed) if render else None
+    agent = AGENTS[agent_name]()
+    renderer = Renderer(grid_size, agent_name=agent_name, fps=fps, think_delay_s=think_speed) if render else None
     human = HumanAgent() if agent_name == "human" else None
 
-    # numero della mela da mangiare (sottoproblema)
     stage = 1
 
-    # gioco interattivo classico 
     while not game.game_over and game.score < n:
         if agent_name == "human":
             for event in pygame.event.get():
@@ -46,7 +40,6 @@ def run_game(agent_name="bfs", is_relaxed=True, n=5, grid_size=10, seed=42, rend
                 renderer.tick_execution()
             continue
 
-        # visualizzazione dell'espansione dell'albero (pensiero) durante l'esecuzione dell'algoritmo 
         def on_expand(path, visited, nodes_expanded, frontier_size):
             if render:
                 renderer.show_thought_step(game, path, visited, nodes_expanded, frontier_size)
@@ -57,8 +50,6 @@ def run_game(agent_name="bfs", is_relaxed=True, n=5, grid_size=10, seed=42, rend
             print(f" Nessun percorso trovato (sottoproblema {stage})")
             break
 
-        # Mostra per un attimo il path finale pensato, ovvero la soluzione trovata (indicata da linea rossa)
-        # forse da cambiare colore 
         if render:
             renderer.draw(
                 game,
@@ -69,7 +60,6 @@ def run_game(agent_name="bfs", is_relaxed=True, n=5, grid_size=10, seed=42, rend
             pygame.event.pump()
             time.sleep(0.5)
 
-        # Esecuzione percorso dopo il reasoning 
         for next_pos in result.path:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -92,19 +82,16 @@ def run_game(agent_name="bfs", is_relaxed=True, n=5, grid_size=10, seed=42, rend
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--agent", type=str, default="bfs", choices=AGENTS.keys())
-    parser.add_argument("--relaxed",type=bool, default=True)
-    parser.add_argument("--n", type=int, default=5)
+    parser.add_argument("--n", type=int, default=50)
     parser.add_argument("--grid", type=int, default=10)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--no-render", action="store_true")
-    parser.add_argument("--fps", type=int, default=1)
-    parser.add_argument("--think-speed", type=float, default=0.08,
-                        help="Ritardo (in secondi) tra ogni espansione del pensiero")
+    parser.add_argument("--fps", type=int, default=10)
+    parser.add_argument("--think-speed", type=float, default=0.08)
     args = parser.parse_args()
 
     run_game(
         agent_name=args.agent,
-        is_relaxed=args.relaxed,
         n=args.n,
         grid_size=args.grid,
         seed=args.seed,
@@ -112,3 +99,4 @@ if __name__ == "__main__":
         fps=args.fps,
         think_speed=args.think_speed,
     )
+
