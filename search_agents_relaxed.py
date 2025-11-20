@@ -1,7 +1,7 @@
 from collections import deque
 import heapq
 from math import sqrt
-from heuristics import manhattan
+from heuristics import manhattan, euclidean_distance, diagonal_distance
 # mosse
 MOVES = {
     "UP": (-1, 0),
@@ -43,7 +43,7 @@ class Relaxed_BFSAgent(_BaseAgent):
     def __init__(self, is_relaxed=True):
         super().__init__(is_relaxed)
         
-    def find_path_with_exploration(self, game, on_expand=None):
+    def find_path_with_exploration(self, game, on_expand=None,max_expansions=1000000):
         start, goal = game.snake[0], game.food
         if goal is None:
             return SearchResult([], 0, 0, 0, False)
@@ -52,7 +52,7 @@ class Relaxed_BFSAgent(_BaseAgent):
         visited = {start}
         nodes_expanded = 0
 
-        while queue:
+        while queue and max_expansions>0:
             pos, path = queue.popleft()
             nodes_expanded += 1
 
@@ -67,6 +67,7 @@ class Relaxed_BFSAgent(_BaseAgent):
                 if nb not in visited:
                     visited.add(nb)
                     queue.append((nb, path + [nb]))
+            max_expansions-=1
 
         return SearchResult([], nodes_expanded, 0, 0, False)
 
@@ -79,7 +80,7 @@ class Relaxed_DFSAgent(_BaseAgent):
     def __init__(self, is_relaxed=True):
         super().__init__(is_relaxed)
         
-    def find_path_with_exploration(self, game, on_expand=None):
+    def find_path_with_exploration(self, game, on_expand=None,max_expansions=1000000):
         start, goal = game.snake[0], game.food
         if goal is None:
             return SearchResult([], 0, 0, 0, False)
@@ -88,7 +89,7 @@ class Relaxed_DFSAgent(_BaseAgent):
         visited = {start}
         nodes_expanded = 0
 
-        while stack:
+        while stack and max_expansions>0:
             pos, path = stack.pop()
             nodes_expanded += 1
 
@@ -102,6 +103,7 @@ class Relaxed_DFSAgent(_BaseAgent):
                 if nb not in visited:
                     visited.add(nb)
                     stack.append((nb, path + [nb]))
+            max_expansions-=1
 
         return SearchResult([], nodes_expanded, 0, 0, False)
 
@@ -114,19 +116,18 @@ class Relaxed_GreedyAgent(_BaseAgent):
     def __init__(self, is_relaxed=True):
         super().__init__(is_relaxed)
         
-    def find_path_with_exploration(self, game, on_expand=None):
+    def find_path_with_exploration(self, game, on_expand=None,heuristic=manhattan,max_expansions=1000000):
         start, goal = game.snake[0], game.food
         if goal is None:
             return SearchResult([], 0, 0, 0, False)
 
-        # da mettere come param
-        open_list = [(manhattan(start, goal), [start])]
+        open_list = [(heuristic(start, goal), [start])]
         visited = {start}
         nodes_expanded = 0
 
-        while open_list:
+        while open_list and max_expansions>0:
             # scegli il path con h minore
-            open_list.sort(key=lambda item: manhattan(item[1][-1], goal))
+            open_list.sort(key=lambda item: heuristic(item[1][-1], goal))
             _, path = open_list.pop(0)
             pos = path[-1]
             nodes_expanded += 1
@@ -140,12 +141,13 @@ class Relaxed_GreedyAgent(_BaseAgent):
             for nb in self._neighbors(game, pos):
                 if nb not in visited:
                     visited.add(nb)
-                    open_list.append((manhattan(nb, goal), path + [nb]))
+                    open_list.append((heuristic(nb, goal), path + [nb]))
+            max_expansions-=1
 
         return SearchResult([], nodes_expanded, 0, 0, False)
 
     def find_path(self, game):
-        return self.find_path_with_exploration(game, on_expand=None)
+        return self.find_path_with_exploration(game, on_expand=None,heuristic=manhattan)
 
 # Agente per A star 
 class Relaxed_AStarAgent(_BaseAgent):
@@ -153,17 +155,17 @@ class Relaxed_AStarAgent(_BaseAgent):
     def __init__(self, is_relaxed=True):
         super().__init__(is_relaxed)
         
-    def find_path_with_exploration(self, game, on_expand=None):
+    def find_path_with_exploration(self, game, on_expand=None,heuristic=manhattan,max_expansions=1000000):
         start, goal = game.snake[0], game.food
         if goal is None:
             return SearchResult([], 0, 0, 0, False)
 
         # (priority, g, path)
-        open_list = [(manhattan(start, goal), 0, [start])]
+        open_list = [(heuristic(start, goal), 0, [start])]
         visited = {start}
         nodes_expanded = 0
 
-        while open_list:
+        while open_list and max_expansions>0:
             priority, g, path = heapq.heappop(open_list)
             pos = path[-1]
             nodes_expanded += 1
@@ -178,8 +180,9 @@ class Relaxed_AStarAgent(_BaseAgent):
                 if nb not in visited:
                     visited.add(nb)
                     new_g = g + 1
-                    f = new_g + manhattan(nb, goal)
+                    f = new_g + heuristic(nb, goal)
                     heapq.heappush(open_list, (f, new_g, path + [nb]))
+            max_expansions-=1
 
         return SearchResult([], nodes_expanded, 0, 0, False)
 

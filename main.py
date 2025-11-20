@@ -4,6 +4,7 @@ from renderer import Renderer
 from human_agent import HumanAgent
 from search_agents import BFSAgent, DFSAgent, GreedyAgent, AStarAgent
 from search_agents_relaxed import Relaxed_BFSAgent, Relaxed_DFSAgent, Relaxed_AStarAgent, Relaxed_GreedyAgent
+from heuristics import manhattan, euclidean_distance, diagonal_distance
 import pygame
 import time
 
@@ -18,8 +19,12 @@ AGENTS = {
     "relaxed_astar": Relaxed_AStarAgent,
     "relaxed_greedy": Relaxed_GreedyAgent,
 }
-
-def run_game(agent_name="bfs", n=101, grid_size=10, seed=42, render=True, fps=1, think_speed=0.001):
+HEURISTICS = {
+    "manhattan": manhattan,
+    "euclidean": euclidean_distance,
+    "diagonal": diagonal_distance,
+}
+def run_game(agent_name="bfs", heuristic_name="manhattan",n=101, grid_size=10, seed=42, render=True, fps=1, think_speed=0.001, max_expansions=1000000):
     game = SnakeGame(grid_size, seed)
     agent = AGENTS[agent_name]()
     renderer = Renderer(grid_size, agent_name=agent_name, fps=fps, think_delay_s=think_speed) if render else None
@@ -44,7 +49,11 @@ def run_game(agent_name="bfs", n=101, grid_size=10, seed=42, render=True, fps=1,
             if render:
                 renderer.show_thought_step(game, path, visited, nodes_expanded, frontier_size)
 
-        result = agent.find_path_with_exploration(game, on_expand=on_expand)
+        if agent_name in ["relaxed_astar","relaxed_greedy","greedy","astar"]:
+            heuristic = HEURISTICS[heuristic_name]
+            result = agent.find_path_with_exploration(game, on_expand=on_expand,heuristic=heuristic,max_expansions=max_expansions)
+        else:
+            result = agent.find_path_with_exploration(game, on_expand=on_expand,max_expansions=max_expansions)
 
         if not result.found:
             print(f" Nessun percorso trovato (sottoproblema {stage})")
@@ -82,21 +91,25 @@ def run_game(agent_name="bfs", n=101, grid_size=10, seed=42, render=True, fps=1,
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--agent", type=str, default="bfs", choices=AGENTS.keys())
+    parser.add_argument("--heuristic",type=str, default="manhattan", choices=["manhattan","euclidean","diagonal"])
     parser.add_argument("--n", type=int, default=50)
     parser.add_argument("--grid", type=int, default=10)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--no-render", action="store_true")
     parser.add_argument("--fps", type=int, default=10)
     parser.add_argument("--think-speed", type=float, default=0.08)
+    parser.add_argument("--max_expansions", type=int, default=1000000)
     args = parser.parse_args()
 
     run_game(
         agent_name=args.agent,
+        heuristic_name=args.heuristic,
         n=args.n,
         grid_size=args.grid,
         seed=args.seed,
         render=not args.no_render,
         fps=args.fps,
         think_speed=args.think_speed,
+        max_expansions=args.max_expansions
     )
 

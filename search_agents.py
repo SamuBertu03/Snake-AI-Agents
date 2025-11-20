@@ -46,7 +46,7 @@ class _BaseAgent:
 
 
 class BFSAgent(_BaseAgent):
-    def find_path_with_exploration(self, game, on_expand=None):
+    def find_path_with_exploration(self, game, on_expand=None,max_expansions=1000000):
         start, goal = game.snake[0], game.food
         if goal is None:
             return SearchResult([], 0, 0, 0, False)
@@ -55,7 +55,7 @@ class BFSAgent(_BaseAgent):
         visited = {tuple(game.snake)}
         nodes_expanded = 0
 
-        while queue:
+        while queue and max_expansions>0:
             snake, path, food = queue.popleft()
             head = snake[0]
             nodes_expanded += 1
@@ -72,6 +72,7 @@ class BFSAgent(_BaseAgent):
                 if state_key not in visited:
                     visited.add(state_key)
                     queue.append((new_snake, path + [new_head], new_food))
+            max_expansions-=1
 
         return SearchResult([], nodes_expanded, 0, 0, False)
 
@@ -80,7 +81,7 @@ class BFSAgent(_BaseAgent):
 
 
 class DFSAgent(_BaseAgent):
-    def find_path_with_exploration(self, game, on_expand=None):
+    def find_path_with_exploration(self, game, on_expand=None,max_expansions=1000000):
         start, goal = game.snake[0], game.food
         if goal is None:
             return SearchResult([], 0, 0, 0, False)
@@ -89,7 +90,7 @@ class DFSAgent(_BaseAgent):
         visited = {tuple(game.snake)}
         nodes_expanded = 0
 
-        while stack:
+        while stack and max_expansions>0:
             snake, path, food = stack.pop()
             head = snake[0]
             nodes_expanded += 1
@@ -106,6 +107,7 @@ class DFSAgent(_BaseAgent):
                 if state_key not in visited:
                     visited.add(state_key)
                     stack.append((new_snake, path + [new_head], new_food))
+            max_expansions-=1
 
         return SearchResult([], nodes_expanded, 0, 0, False)
 
@@ -114,16 +116,16 @@ class DFSAgent(_BaseAgent):
 
 
 class GreedyAgent(_BaseAgent):
-    def find_path_with_exploration(self, game, on_expand=None):
+    def find_path_with_exploration(self, game, on_expand=None,heuristic=manhattan,max_expansions=1000000):
         start, goal = game.snake[0], game.food
         if goal is None:
             return SearchResult([], 0, 0, 0, False)
 
-        open_list = [(manhattan(start, goal), game.snake, [], game.food)]
+        open_list = [(heuristic(start, goal), game.snake, [], game.food)]
         visited = {tuple(game.snake)}
         nodes_expanded = 0
 
-        while open_list:
+        while open_list and max_expansions>0:
             open_list.sort(key=lambda item: manhattan(item[1][0], goal))
             _, snake, path, food = open_list.pop(0)
             head = snake[0]
@@ -141,7 +143,7 @@ class GreedyAgent(_BaseAgent):
                 if state_key not in visited:
                     visited.add(state_key)
                     open_list.append((manhattan(new_head, goal), new_snake, path + [new_head], new_food))
-
+            max_expansions-=1
         return SearchResult([], nodes_expanded, 0, 0, False)
 
     def find_path(self, game):
@@ -149,16 +151,16 @@ class GreedyAgent(_BaseAgent):
 
 
 class AStarAgent(_BaseAgent):
-    def find_path_with_exploration(self, game, on_expand=None):
+    def find_path_with_exploration(self, game, on_expand=None,heuristic=manhattan,max_expansions=1000000):
         start, goal = game.snake[0], game.food
         if goal is None:
             return SearchResult([], 0, 0, 0, False)
 
-        open_list = [(manhattan(start, goal), 0, game.snake, [], game.food)]
+        open_list = [(heuristic(start, goal), 0, game.snake, [], game.food)]
         visited = {tuple(game.snake)}
         nodes_expanded = 0
 
-        while open_list:
+        while open_list and max_expansions>0:
             f, g, snake, path, food = heapq.heappop(open_list)
             head = snake[0]
             nodes_expanded += 1
@@ -177,7 +179,7 @@ class AStarAgent(_BaseAgent):
                     new_g = g + 1
                     f = new_g + manhattan(new_head, goal)
                     heapq.heappush(open_list, (f, new_g, new_snake, path + [new_head], new_food))
-
+            max_expansions-=1
         return SearchResult([], nodes_expanded, 0, 0, False)
 
     def find_path(self, game):
