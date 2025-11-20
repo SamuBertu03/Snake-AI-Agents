@@ -60,7 +60,7 @@ python main.py
 ### Available parameters
 
 ```bash
-python main.py --agent <algorithm> --heuristic <heuristic> --n <apples> --grid <size> --seed <seed> --fps <speed> --think-speed <thinking_speed> --max_expansions <limit>
+python main.py --agent <algorithm> --heuristic <heuristic> --n <apples> --max_expansions <limit> --grid <size> --seed <seed> --fps <speed> --think-speed <thinking_speed> --no-render --windowed
 ```
 
 Parameters:
@@ -76,12 +76,13 @@ Parameters:
   * `euclidean`: Euclidean distance
   * `diagonal`: Diagonal distance
 * `--n`: Number of apples to eat (default: 50)
+* `--max_expansions`: Maximum number of node expansions allowed before terminating search (default: 1000000)
 * `--grid`: Grid size (default: 10)
 * `--seed`: Seed for random generation (default: 42)
 * `--fps`: Snake execution speed (default: 10)
 * `--think-speed`: Visualization speed of the thought process (default: 0.08)
-* `--max_expansions`: Maximum number of node expansions allowed before terminating search (default: 1000000)
 * `--no-render`: Disable graphical rendering
+* `--windowed`: The program run in windowed mode instead of fullscreen mode
 
 ### Examples
 

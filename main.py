@@ -19,20 +19,29 @@ AGENTS = {
     "relaxed_astar": Relaxed_AStarAgent,
     "relaxed_greedy": Relaxed_GreedyAgent,
 }
+
 HEURISTICS = {
     "manhattan": manhattan,
     "euclidean": euclidean_distance,
     "diagonal": diagonal_distance,
 }
-def run_game(agent_name="bfs", heuristic_name="manhattan",n=101, grid_size=10, seed=42, render=True, fps=1, think_speed=0.001, max_expansions=1000000):
+
+
+def run_game(agent_name="bfs", heuristic_name="manhattan", n=101, grid_size=10,
+             seed=42, render=True, fps=1, think_speed=0.001, max_expansions=1000000,
+             windowed=True):
+
     game = SnakeGame(grid_size, seed)
     agent = AGENTS[agent_name]()
-    renderer = Renderer(grid_size, agent_name=agent_name, fps=fps, think_delay_s=think_speed) if render else None
+    renderer = Renderer(grid_size, agent_name=agent_name, fps=fps,
+                        think_delay_s=think_speed, windowed=windowed) if render else None
     human = HumanAgent() if agent_name == "human" else None
 
     stage = 1
 
     while not game.game_over and game.score < n:
+
+        # --- Input umano ---
         if agent_name == "human":
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -45,15 +54,28 @@ def run_game(agent_name="bfs", heuristic_name="manhattan",n=101, grid_size=10, s
                 renderer.tick_execution()
             continue
 
+        # --- Callback per la visualizzazione della ricerca ---
         def on_expand(path, visited, nodes_expanded, frontier_size):
             if render:
-                renderer.show_thought_step(game, path, visited, nodes_expanded, frontier_size)
+                renderer.show_thought_step(
+                    game, path, visited, nodes_expanded, frontier_size
+                )
 
-        if agent_name in ["relaxed_astar","relaxed_greedy","greedy","astar"]:
+        # --- Se l’agente usa una euristica ---
+        if agent_name in ["relaxed_astar", "relaxed_greedy", "greedy", "astar"]:
             heuristic = HEURISTICS[heuristic_name]
-            result = agent.find_path_with_exploration(game, on_expand=on_expand,heuristic=heuristic,max_expansions=max_expansions)
+            result = agent.find_path_with_exploration(
+                game,
+                on_expand=on_expand,
+                heuristic=heuristic,
+                max_expansions=max_expansions
+            )
         else:
-            result = agent.find_path_with_exploration(game, on_expand=on_expand,max_expansions=max_expansions)
+            result = agent.find_path_with_exploration(
+                game,
+                on_expand=on_expand,
+                max_expansions=max_expansions
+            )
 
         if not result.found:
             print(f" Nessun percorso trovato (sottoproblema {stage})")
@@ -64,11 +86,12 @@ def run_game(agent_name="bfs", heuristic_name="manhattan",n=101, grid_size=10, s
                 game,
                 path=result.path,
                 visited=None,
-                overlay_info=f"Plan found — cost {result.cost} | expanded {result.nodes_expanded}",
+                overlay_info=f"Plan found — cost {result.cost} | expanded {result.nodes_expanded}"
             )
             pygame.event.pump()
             time.sleep(0.5)
 
+        # --- Esecuzione del piano ---
         for next_pos in result.path:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -91,7 +114,8 @@ def run_game(agent_name="bfs", heuristic_name="manhattan",n=101, grid_size=10, s
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--agent", type=str, default="bfs", choices=AGENTS.keys())
-    parser.add_argument("--heuristic",type=str, default="manhattan", choices=["manhattan","euclidean","diagonal"])
+    parser.add_argument("--heuristic", type=str, default="manhattan",
+                        choices=["manhattan", "euclidean", "diagonal"])
     parser.add_argument("--n", type=int, default=50)
     parser.add_argument("--grid", type=int, default=10)
     parser.add_argument("--seed", type=int, default=42)
@@ -99,6 +123,11 @@ if __name__ == "__main__":
     parser.add_argument("--fps", type=int, default=10)
     parser.add_argument("--think-speed", type=float, default=0.08)
     parser.add_argument("--max_expansions", type=int, default=1000000)
+
+    # --- Flag per finestra o borderless fullscreen ---
+    parser.add_argument("--windowed", action="store_true",
+                        help="Apri la finestra normale invece che borderless fullscreen")
+
     args = parser.parse_args()
 
     run_game(
@@ -110,6 +139,6 @@ if __name__ == "__main__":
         render=not args.no_render,
         fps=args.fps,
         think_speed=args.think_speed,
-        max_expansions=args.max_expansions
+        max_expansions=args.max_expansions,
+        windowed=args.windowed
     )
-
