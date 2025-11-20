@@ -54,13 +54,13 @@ pip install pygame
 ### Basic execution
 
 ```bash
-python main.py --agent bfs
+python main.py 
 ```
 
 ### Available parameters
 
 ```bash
-python main.py --agent <algorithm> --n <apples> --grid <size> --seed <seed> --fps <speed> --think-speed <thinking_speed>
+python main.py --agent <algorithm> --heuristic <heuristic> --n <apples> --grid <size> --seed <seed> --fps <speed> --think-speed <thinking_speed> --max_expansions <limit>
 ```
 
 Parameters:
@@ -70,11 +70,17 @@ Parameters:
   * `bfs`, `dfs`, `greedy`, `astar` (complete versions)
   * `relaxed_bfs`, `relaxed_dfs`, `relaxed_greedy`, `relaxed_astar` (relaxed versions)
   * `human` (manual control)
+* `--heuristic`: Heuristic function to use for informed search algorithms (default: manhattan)
+
+  * `manhattan`: Manhattan distance
+  * `euclidean`: Euclidean distance
+  * `diagonal`: Diagonal distance
 * `--n`: Number of apples to eat (default: 50)
 * `--grid`: Grid size (default: 10)
 * `--seed`: Seed for random generation (default: 42)
 * `--fps`: Snake execution speed (default: 10)
 * `--think-speed`: Visualization speed of the thought process (default: 0.08)
+* `--max_expansions`: Maximum number of node expansions allowed before terminating search (default: 1000000)
 * `--no-render`: Disable graphical rendering
 
 ### Examples
@@ -85,6 +91,12 @@ python main.py --agent relaxed_astar --grid 15 --n 100
 
 # Complete BFS, fast visualization
 python main.py --agent bfs --fps 20 --think-speed 0.01
+
+# A* with Euclidean heuristic
+python main.py --agent astar --heuristic euclidean
+
+# Greedy search with expansion limit
+python main.py --agent greedy --max_expansions 50000
 
 # Manual mode
 python main.py --agent human
@@ -120,7 +132,7 @@ Explores in depth, may find solutions faster but not optimal ones.
 
 ### Greedy Best-First Search
 
-Uses a heuristic (Manhattan distance) to choose the most promising node.
+Uses a heuristic to choose the most promising node.
 
 ### A* Search
 
@@ -152,3 +164,5 @@ Combines real cost and heuristic to efficiently find the optimal path.
 ## Notes
 
 To modify animation speed during execution, use the parameters `--fps` (snake speed) and `--think-speed` (search visualization speed).
+
+The `--max_expansions` parameter can be used to limit computational resources and terminate search early if a solution is too costly to find.
