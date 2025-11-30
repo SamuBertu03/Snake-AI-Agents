@@ -1,6 +1,40 @@
 from collections import deque
 import heapq
 from heuristics import manhattan, diagonal_distance, euclidean_distance
+from collections import deque
+
+def is_state_safe(snake, grid_size):
+    
+    head = snake[0]
+    tail = snake[-1]
+    body_without_tail = set(snake[:-1])
+
+    def neighbors(pos):
+        for dx, dy in MOVES.values():
+            nx, ny = pos[0] + dx, pos[1] + dy
+            if not (0 <= nx < grid_size and 0 <= ny < grid_size):
+                continue
+            new_head = (nx, ny)
+            if new_head in body_without_tail:
+                continue
+            yield new_head
+
+    if not any(True for _ in neighbors(head)):
+        return False
+
+    q = deque([head])
+    visited = {head}
+    while q:
+        pos = q.popleft()
+        if pos == tail:
+            return True
+        for nb in neighbors(pos):
+            if nb not in visited:
+                visited.add(nb)
+                q.append(nb)
+
+    return False
+
 
 MOVES = {
     "UP": (-1, 0),
@@ -184,4 +218,48 @@ class AStarAgent(_BaseAgent):
 
     def find_path(self, game):
         return self.find_path_with_exploration(game, on_expand=None)
+
+
+class SafeAStarAgent(_BaseAgent):
+
+    def find_path_with_exploration(self, game, on_expand=None,
+                                   heuristic=manhattan, max_expansions=1000000):
+        start, goal = game.snake[0], game.food
+        if goal is None:
+            return SearchResult([], 0, 0, 0, False)
+
+        open_list = [(heuristic(start, goal), 0, game.snake, [], game.food)]
+        visited = {tuple(game.snake)}
+        nodes_expanded = 0
+
+        while open_list and max_expansions > 0:
+            f, g, snake, path, food = heapq.heappop(open_list)
+            head = snake[0]
+            nodes_expanded += 1
+
+            if on_expand:
+                visited_heads = {state[0] for state in visited}
+                on_expand(path, visited_heads, nodes_expanded, len(open_list))
+
+            if head == goal:
+                if is_state_safe(snake, game.grid_size):
+                    return SearchResult(path, nodes_expanded, len(path), g, True)
+                max_expansions -= 1
+                continue
+
+            for new_head, new_snake, new_food in self._next_states(snake, food, game.grid_size):
+                state_key = tuple(new_snake)
+                if state_key not in visited:
+                    visited.add(state_key)
+                    new_g = g + 1
+                    f = new_g + heuristic(new_head, goal)
+                    heapq.heappush(open_list, (f, new_g, new_snake, path + [new_head], new_food))
+
+            max_expansions -= 1
+
+        return SearchResult([], nodes_expanded, 0, 0, False)
+
+    def find_path(self, game):
+        return self.find_path_with_exploration(game, on_expand=None)
+    
 
