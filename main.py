@@ -28,13 +28,13 @@ HEURISTICS = {
 
 
 def run_game(agent_name="bfs", heuristic_name="manhattan", n=101, grid_size=10,
-             seed=42, render=True, fps=1, think_speed=0.001, max_expansions=1000000,
+             seed=42, fps=1, think_speed=0.001, max_expansions=1000000,
              windowed=True):
 
     game = SnakeGame(grid_size, seed)
     agent = AGENTS[agent_name]()
     renderer = Renderer(grid_size, agent_name=agent_name, fps=fps,
-                        think_delay_s=think_speed, windowed=windowed) if render else None
+                        think_delay_s=think_speed, windowed=windowed) 
     human = HumanAgent() if agent_name == "human" else None
 
     stage = 1
@@ -49,17 +49,15 @@ def run_game(agent_name="bfs", heuristic_name="manhattan", n=101, grid_size=10,
             action = human.get_action()
             if action:
                 game.step(action)
-            if render:
                 renderer.draw(game)
                 renderer.tick_execution()
             continue
 
         # --- Callback per la visualizzazione della ricerca ---
         def on_expand(path, visited, nodes_expanded, frontier_size):
-            if render:
-                renderer.show_thought_step(
-                    game, path, visited, nodes_expanded, frontier_size
-                )
+            renderer.show_thought_step(
+                game, path, visited, nodes_expanded, frontier_size
+            )
 
         # --- Se l’agente usa una euristica ---
         if agent_name in ["relaxed_astar", "relaxed_greedy", "greedy", "astar"]:
@@ -81,15 +79,14 @@ def run_game(agent_name="bfs", heuristic_name="manhattan", n=101, grid_size=10,
             print(f" Nessun percorso trovato (sottoproblema {stage})")
             break
 
-        if render:
-            renderer.draw(
-                game,
-                path=result.path,
-                visited=None,
-                overlay_info=f"Plan found — cost {result.cost} | expanded {result.nodes_expanded}"
-            )
-            pygame.event.pump()
-            time.sleep(0.5)
+        renderer.draw(
+            game,
+            path=result.path,
+            visited=None,
+            overlay_info=f"Plan found — cost {result.cost} | expanded {result.nodes_expanded}"
+        )
+        pygame.event.pump()
+        time.sleep(0.5)
 
         # --- Esecuzione del piano ---
         for next_pos in result.path:
@@ -101,9 +98,8 @@ def run_game(agent_name="bfs", heuristic_name="manhattan", n=101, grid_size=10,
             head = game.snake[0]
             action = (next_pos[0] - head[0], next_pos[1] - head[1])
             game.step(action)
-            if render:
-                renderer.draw(game)
-                renderer.tick_execution()
+            renderer.draw(game)
+            renderer.tick_execution()
 
         print(f" Mela {stage} mangiata! (expanded: {result.nodes_expanded}, cost: {result.cost})")
         stage += 1
@@ -119,7 +115,6 @@ if __name__ == "__main__":
     parser.add_argument("--n", type=int, default=50)
     parser.add_argument("--grid", type=int, default=10)
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--no-render", action="store_true")
     parser.add_argument("--fps", type=int, default=10)
     parser.add_argument("--think-speed", type=float, default=0.08)
     parser.add_argument("--max_expansions", type=int, default=1000000)
@@ -136,7 +131,6 @@ if __name__ == "__main__":
         n=args.n,
         grid_size=args.grid,
         seed=args.seed,
-        render=not args.no_render,
         fps=args.fps,
         think_speed=args.think_speed,
         max_expansions=args.max_expansions,

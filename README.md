@@ -81,7 +81,6 @@ Parameters:
 * `--seed`: Seed for random generation (default: 42)
 * `--fps`: Snake execution speed (default: 10)
 * `--think-speed`: Visualization speed of the thought process (default: 0.08)
-* `--no-render`: Disable graphical rendering
 * `--windowed`: The program run in windowed mode instead of fullscreen mode
 
 ### Examples
@@ -102,8 +101,7 @@ python main.py --agent greedy --max_expansions 50000
 # Manual mode
 python main.py --agent human
 
-# Run without graphics for benchmarking
-python main.py --agent astar --no-render
+
 ```
 
 ## Project Structure

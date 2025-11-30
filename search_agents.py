@@ -1,6 +1,6 @@
 from collections import deque
 import heapq
-from heuristics import manhattan
+from heuristics import manhattan, diagonal_distance, euclidean_distance
 
 MOVES = {
     "UP": (-1, 0),
@@ -126,7 +126,7 @@ class GreedyAgent(_BaseAgent):
         nodes_expanded = 0
 
         while open_list and max_expansions>0:
-            open_list.sort(key=lambda item: manhattan(item[1][0], goal))
+            open_list.sort(key=lambda item: heuristic(item[1][0], goal))
             _, snake, path, food = open_list.pop(0)
             head = snake[0]
             nodes_expanded += 1
@@ -142,7 +142,7 @@ class GreedyAgent(_BaseAgent):
                 state_key = tuple(new_snake)
                 if state_key not in visited:
                     visited.add(state_key)
-                    open_list.append((manhattan(new_head, goal), new_snake, path + [new_head], new_food))
+                    open_list.append((heuristic(new_head, goal), new_snake, path + [new_head], new_food))
             max_expansions-=1
         return SearchResult([], nodes_expanded, 0, 0, False)
 
@@ -177,7 +177,7 @@ class AStarAgent(_BaseAgent):
                 if state_key not in visited:
                     visited.add(state_key)
                     new_g = g + 1
-                    f = new_g + manhattan(new_head, goal)
+                    f = new_g + heuristic(new_head, goal)
                     heapq.heappush(open_list, (f, new_g, new_snake, path + [new_head], new_food))
             max_expansions-=1
         return SearchResult([], nodes_expanded, 0, 0, False)
