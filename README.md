@@ -48,8 +48,51 @@ This project implements a Snake environment where an AI agent must find the opti
 ```bash
 pip install pygame
 ```
+## Graphical Menu Launcher
 
-## Usage
+SnAIke includes a graphical launcher (`menu.py`) that allows you to start the game without typing any command-line arguments.
+
+### How to start the launcher
+
+```bash
+python menu.py
+```
+
+### Menu Features
+
+#### **Agent selection**
+
+Available algorithms:
+
+- Manual  
+- Relaxed BFS / DFS / Greedy / A*  
+- Complete BFS / DFS / Greedy / A*  
+
+#### **Fullscreen toggle**
+
+- Checkbox `[ ]` or `[X]` inside the main menu  
+- When enabled, the game runs in **borderless fullscreen mode**
+
+#### **Heuristic submenu**
+
+Automatically appears when the selected agent requires a heuristic (Greedy or A*):
+
+- Manhattan  
+- Euclidean  
+- Diagonal  
+
+#### **Random seed**
+
+The launcher automatically generates a new random seed for every game session.
+
+### Navigation Controls
+
+- **UP / DOWN** → Select agent  
+- **LEFT / RIGHT / SPACE** → Toggle fullscreen  
+- **ENTER** → Apply settings and launch the game  
+- **ESC** → Quit the launcher  
+
+## Usage (Command Line)
 
 ### Basic execution
 
